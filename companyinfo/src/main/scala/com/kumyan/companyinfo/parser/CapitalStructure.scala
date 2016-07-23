@@ -28,7 +28,7 @@ object CapitalStructure {
       ""
     } else {
 
-      val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/CapitalStockStructure.aspx?code=" + stockCode).timeout(6000).get()
+      val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/CapitalStockStructure.aspx?code=" + stockCode).userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2").timeout(20000).get()
 
       try {
 
