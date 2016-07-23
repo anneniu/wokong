@@ -8,9 +8,15 @@ import org.jsoup.Jsoup
 
 /**
   * Created by zhangruibo on 2016/7/21.
+  * update by niujiaojiao on 2016/7/23.
   */
 object StockHolders extends App {
 
+  /**
+    * 股东研究模块入口
+    * @param stockCode 股票代码
+    * @return 整个板块的字符串
+    */
   def parseStockHolders(stockCode: String): String = {
 
     var json = ""
@@ -21,23 +27,62 @@ object StockHolders extends App {
       ""
     } else {
 
-      val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/ShareholderResearch.aspx?code=" + stockCode).get()
+      val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/ShareholderResearch.aspx?code=" + stockCode).timeout(6000).get()
 
       //十大流通股东
-      val tableTop = doc.getElementById("TTCS_Table_Div")
-        .getElementsByTag("table").select("tbody")
 
-      val partOneDates = doc.getElementById("sdltgd").nextElementSibling().getElementsByTag("li")
+      var tableTop = new Elements()
 
-      assert(tableTop.size == partOneDates.size)
+      if (doc.toString.contains("TTCS_Table_Div")) {
+
+        tableTop = doc.getElementById("TTCS_Table_Div")
+          .select("table tbody")
+
+      } else {
+        tableTop = null
+      }
+
+
+      var partOneDates = new Elements()
+
+      if(tableTop!= null){
+
+        if (doc.toString.contains("sdltgd")) {
+
+          partOneDates = doc.getElementById("sdltgd").nextElementSibling().getElementsByTag("li")
+
+        } else {
+          partOneDates = null
+        }
+
+      }
 
       //十大股东
-      val tableBot = doc.getElementById("TTS_Table_Div")
-        .getElementsByTag("table").select("tbody")
 
-      val partTwoDates = doc.getElementById("sdgd").nextElementSibling().getElementsByTag("li")
+      var tableBot = new Elements()
 
-      assert(tableBot.size == partTwoDates.size)
+      if (doc.toString.contains("TTS_Table_Div")) {
+
+        tableBot = doc.getElementById("TTS_Table_Div")
+          .select("table tbody")
+
+      } else {
+        tableBot = null
+      }
+
+      var partTwoDates = new Elements()
+
+      if(tableBot != null){
+
+        if (doc.toString.contains("sdgd")) {
+
+          partTwoDates = doc.getElementById("sdgd").nextElementSibling().getElementsByTag("li")
+
+        } else {
+          partTwoDates = null
+        }
+
+      }
 
       val mapTop = getJson(tableTop, partOneDates)
 
@@ -54,46 +99,54 @@ object StockHolders extends App {
 
   }
 
-
+  /**
+    *  获取相对应的map 集合
+    * @param children 所有的对应的日期的表的字符串：分析以日期字符串对象的个数为基准，表的字符串的个数不符合需求（始终是五个）
+    * @param allDates 所有的日期的字符串
+    * @return map 集合
+    */
   def getJson(children: Elements, allDates: Elements): java.util.HashMap[String, Object] = {
 
     val map = new java.util.HashMap[String, Object]()
 
-    for (i <- 0 until children.size) {
+    if (children != null && allDates!= null) {
 
-      val tr = children.get(i).select("tr")
+      for (i <- 0 until allDates.size) {
 
-      val thkeys = tr.first().getElementsByTag("th")
+        val tr = children.get(i).select("tr")
 
-      val mapOut = new java.util.HashMap[String, Object]()
+        val thkeys = tr.first().getElementsByTag("th")
 
-      for (j <- 1 until tr.size) {
+        val mapOut = new java.util.HashMap[String, Object]()
 
-        val subvalue = tr.get(j).getElementsByTag("th")
+        for (j <- 1 until tr.size) {
 
-        val values = tr.get(j).getElementsByTag("td")
+          val subvalue = tr.get(j).getElementsByTag("th")
 
-        val mapIn = new java.util.HashMap[String, Object]()
+          val values = tr.get(j).getElementsByTag("td")
 
-        for (k <- 0 until values.size) {
+          val mapIn = new java.util.HashMap[String, Object]()
 
-          if (k == 0) {
-            mapIn.put(thkeys.get(0).text(), subvalue.text)
-          } else {
-            mapIn.put(thkeys.get(k + 1).text(), values.get(k).text)
+          for (k <- 0 until values.size) {
+
+            if (k == 0) {
+              mapIn.put(thkeys.get(0).text(), subvalue.text)
+            } else {
+              mapIn.put(thkeys.get(k + 1).text(), values.get(k).text)
+            }
+
           }
 
+          mapOut.put(j.toString, mapIn)
         }
 
-        mapOut.put(j.toString, mapIn)
-      }
+        map.put(allDates.get(i).text, mapOut)
 
-      map.put(allDates.get(i).text, mapOut)
+      }
 
     }
 
     map
-
   }
 
 }

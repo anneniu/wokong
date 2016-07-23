@@ -26,19 +26,50 @@ object CpnyExecutives {
       ""
     } else {
 
-      val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/CompanyManagement.aspx?code=" + stockCode).get()
+      val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/CompanyManagement.aspx?code=" + stockCode).timeout(6000).get()
 
       //高管列表
-      val tableTop = doc.select("table#gglb_table tbody").first.getElementsByTag("tr")
+      var identifier = doc.select("table#gglb_table").toString
+
+      var tableTop = new Elements()
+
+      if (doc.getElementById("gglb")
+        .nextElementSibling().getElementsByTag("table").toString.nonEmpty) {
+
+        tableTop = doc.getElementById("gglb")
+          .nextElementSibling().getElementsByTag("table").select("tbody").first().getElementsByTag("tr")
+
+      } else if (doc.select("table#gglb_table tbody").toString.nonEmpty) {
+
+        tableTop = doc.select("table#gglb_table tbody").first.getElementsByTag("tr")
+
+      } else {
+
+        tableTop = null
+      }
 
       //高管持股变动
-      val tableMid = doc.getElementById("cgbd")
-        .nextElementSibling().getElementsByTag("table").select("tbody").first().getElementsByTag("tr")
+      var tableMid = new Elements()
+
+      if (doc.getElementById("cgbd")
+        .nextElementSibling().getElementsByTag("table").toString.nonEmpty) {
+
+        tableMid = doc.getElementById("cgbd")
+          .nextElementSibling().getElementsByTag("table").select("tbody").first().getElementsByTag("tr")
+
+      } else {
+
+        tableMid = null
+
+      }
 
       //管理层简介
-
-      val tableBot = doc.getElementById("glcjj").nextElementSibling()
+      var tableBot = doc.getElementById("glcjj").nextElementSibling()
         .getElementsByTag("table")
+
+      if(tableBot.toString.isEmpty){
+        tableBot = null
+      }
 
       val mapTop = parseSingleTable(tableTop, 0)
 
@@ -69,39 +100,57 @@ object CpnyExecutives {
 
     val mapOut = new java.util.HashMap[String, Object]()
 
-    for (i <- 0 until children.size) {
+    if(children != null){
 
-      val list = children.get(i)
+      for (i <- 0 until children.size) {
 
-      val tagTd = list.getElementsByTag("td")
+        val list = children.get(i)
 
-      val mapIn = new java.util.HashMap[String, Object]()
+        val tagTd = list.getElementsByTag("td")
 
-      val nameText = tagTd.get(0).text
+        val mapIn = new java.util.HashMap[String, Object]()
 
-      val name = nameText.substring(1, nameText.length).trim()
+        val nameText = tagTd.get(0).text
 
-      for (j <- 1 until tagTd.size) {
+        val name = nameText.substring(1, nameText.length).trim()
 
-        val total = tagTd.get(j).text()
+        for (j <- 1 until tagTd.size) {
 
-        if (total.startsWith(name)) {
+          val total = tagTd.get(j).text()
 
-          val key = name
-          val value = tagTd.get(j).text()
-          mapIn.put(key, value)
+          if (total.startsWith(name)) {
 
-        } else {
+            val key = name
+            val value = tagTd.get(j).text()
+            mapIn.put(key, value)
 
-          val key = total.split(":")(0)
-          val value = total.split(":")(1)
-          mapIn.put(key, value)
+          } else {
+
+            var flag = false
+            if (total.contains(":")) {
+
+              if (total.split(":").length >= 2) {
+                flag = true
+              }
+
+            }
+            if (flag) {
+              val key = total.split(":")(0)
+              val value = total.split(":")(1)
+              mapIn.put(key, value)
+
+            } else {
+              val key = name
+              val value = tagTd.get(j).text()
+            }
+
+          }
 
         }
 
-      }
+        mapOut.put(name, mapIn)
 
-      mapOut.put(name, mapIn)
+      }
 
     }
 
@@ -121,46 +170,49 @@ object CpnyExecutives {
 
     val map = new java.util.HashMap[String, Object]()
 
-    val rowkeys = children.first().getElementsByTag("th")
+    if(children != null){
 
-    for (i <- 1 until children.size) {
+      val rowkeys = children.first().getElementsByTag("th")
 
-      index match {
+      for (i <- 1 until children.size) {
 
-        case 0 => {
+        index match {
 
-          val values = children.get(i).getElementsByTag("td")
+          case 0 => {
 
-          val mapIn = new java.util.HashMap[String, Object]()
+            val values = children.get(i).getElementsByTag("td")
 
-          for (j <- 1 until values.size) {
+            val mapIn = new java.util.HashMap[String, Object]()
 
-            mapIn.put(rowkeys.get(j).text, values.get(j).text)
+            for (j <- 1 until values.size) {
 
-          }
+              mapIn.put(rowkeys.get(j).text, values.get(j).text)
 
-          map.put(values.get(0).text, mapIn)
+            }
 
-        }
-        case 1 => {
-
-          val th = children.get(i).getElementsByTag("th")
-          val values = children.get(i).getElementsByTag("td")
-
-          val mapIn = new java.util.HashMap[String, Object]()
-
-          for (j <- 0 until values.size) {
-
-            mapIn.put(rowkeys.get(j + 1).text, values.get(j).text)
+            map.put(values.get(0).text, mapIn)
 
           }
+          case 1 => {
 
-          map.put(th.text(), mapIn)
-        }
-        case _ => {
-          println("Please give correct value!")
-        }
+            val th = children.get(i).getElementsByTag("th")
+            val values = children.get(i).getElementsByTag("td")
 
+            val mapIn = new java.util.HashMap[String, Object]()
+
+            for (j <- 0 until values.size) {
+
+              mapIn.put(rowkeys.get(j + 1).text, values.get(j).text)
+
+            }
+
+            map.put(th.text(), mapIn)
+          }
+          case _ => {
+            println("Please give correct value!")
+          }
+
+        }
 
       }
 

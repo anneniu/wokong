@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by niujiaojiao on 2016/7/21.
   */
-object Connections {
+object DbConnection {
 
   val TABLE_NAME = "company_info"
 
@@ -23,7 +23,7 @@ object Connections {
     * 创建hbase表
     *
     * @param tableName 表名
-    * @param families  列簇名
+    * @param families  列族名：company
     * @param hbaseConn 服务器连接配置信息
     */
   def createHbaseTable(tableName: TableName, families: List[String], hbaseConn: Connection): Unit = {
@@ -53,7 +53,7 @@ object Connections {
 
     val resultPut = new Put(Bytes.toBytes(stockID))
 
-    for (i <- 0 until FAMILY_NAME.size) {
+    for (i <- FAMILY_NAME.indices) {
 
       resultPut.addColumn(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(i)), Bytes.toBytes(content(i)))
 

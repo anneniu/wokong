@@ -3,8 +3,9 @@ package com.kumyan.companyinfo
 import java.io.{File, PrintWriter}
 import java.sql.DriverManager
 
-import com.kumyan.companyinfo.parser.{CapitalStructure, CpnyExecutives, CpnyInstructure}
-import org.apache.hadoop.hbase.HBaseConfiguration
+import com.kumyan.companyinfo.db.DbConnection
+import com.kumyan.companyinfo.parser.{StockHolders, CapitalStructure, CpnyExecutives, CpnyInstructure}
+import org.apache.hadoop.hbase.{TableName, HBaseConfiguration}
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
@@ -12,6 +13,7 @@ import scala.xml.XML
 
 /**
   * Created by niujiaojiao on 2016/7/21.
+  * 主程序入口
   */
 object Scheduler {
 
@@ -30,13 +32,20 @@ object Scheduler {
       hbaseConnection.close()
     }
 
+    val familyname = List[String](DbConnection.COLUMN_FAMILY_NAME)
+
+    val hbaseTable = hbaseConnection.getTable(TableName.valueOf(DbConnection.TABLE_NAME))
+
+
+    DbConnection.createHbaseTable(TableName.valueOf(DbConnection.TABLE_NAME), familyname, hbaseConnection)
+
     //mysql 连接信息
-    Class.forName("com.mysql.jdbc.Driver")
+    //    Class.forName("com.mysql.jdbc.Driver")
+    //
+    //    val Mysqlconnection = DriverManager.getConnection((configFile \ "mysql" \ "url").text,
+    //      (configFile \ "mysql" \ "username").text, (configFile \ "mysql" \ "password").text)
 
-    val Mysqlconnection = DriverManager.getConnection((configFile \ "mysql" \ "url").text,
-      (configFile \ "mysql" \ "username").text, (configFile \ "mysql" \ "password").text)
-
-    val writer = new PrintWriter(new File("E:/getJsonTest.txt"), "gb2312")
+    //    val writer = new PrintWriter(new File("E:/EastForthJson.txt"), "utf-8")
 
     val file = Source.fromFile("E:/wokong/companyinfo/src/main/resources/StockCode.txt").getLines()
 
@@ -50,9 +59,13 @@ object Scheduler {
 
         val thirdJson = CapitalStructure.parseCapitalStructure(x)
 
-        writer.write(x + "\n" + "第一模块\n" + firstJson + "\n" + "第二模块\n" + secondJson + "\n" + "第三模块\n" + thirdJson)
+        val fourthJson = StockHolders.parseStockHolders(x)
 
-        writer.write("*********************************************************************")
+        //        writer.write( x + "\n" + "第四模块\n" + fourthJson )
+        //        + "\n" + "第二模块\n" + secondJson + "\n" + "第三模块\n" + thirdJson
+        //          + "\n" + "第四模块\n" )
+        DbConnection.putResultToTable(hbaseTable, x.toString, ListBuffer[String](firstJson, secondJson, thirdJson, fourthJson))
+
       }
 
     }

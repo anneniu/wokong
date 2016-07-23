@@ -20,19 +20,25 @@ object CpnyInstructure {
 
     var json = ""
 
-    var map = new java.util.HashMap[String, Object]()
+    val map = new java.util.HashMap[String, Object]()
 
-    if (stockCode.isEmpty) {
-      ""
-    } else {
+    if(stockCode.nonEmpty){
 
       val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/CompanySurvey.aspx?code=" + stockCode).get()
 
       //基本资料
-      val tableTop = doc.select("table#Table0 tbody")
+      var tableTop = doc.select("table#Table0 tbody")
+
+      if (tableTop.toString.isEmpty) {
+        tableTop = null
+      }
 
       //发行相关
-      val tableBot = doc.getElementById("fxxg").nextElementSibling().getElementsByTag("table").select("tbody")
+      var tableBot = doc.getElementById("fxxg").nextElementSibling().getElementsByTag("table").select("tbody")
+
+      if (tableBot.toString.isEmpty) {
+        tableBot = null
+      }
 
       val mapTop = getJson(tableTop)
 
@@ -43,6 +49,7 @@ object CpnyInstructure {
       map.put("发行相关", mapBot)
 
       json = JSONObject.toJSONString(map)
+
     }
 
     json
@@ -58,23 +65,26 @@ object CpnyInstructure {
     */
   def getJson(children: Elements): java.util.HashMap[String, Object] = {
 
-    var json = ""
+    val map = new java.util.HashMap[String, Object]()
 
-    var map = new java.util.HashMap[String, Object]()
+    if(children != null){
 
-    val keys = children.first().getElementsByTag("th")
 
-    val values = children.first().getElementsByTag("td")
 
-    assert(keys.size == values.size)
+      val keys = children.first().getElementsByTag("th")
 
-    for (i <- 0 until keys.size) {
+      val values = children.first().getElementsByTag("td")
 
-      map.put(keys.get(i).text, values.get(i).text)
+      assert(keys.size == values.size)
+
+      for (i <- 0 until keys.size) {
+
+        map.put(keys.get(i).text, values.get(i).text)
+      }
+
     }
 
     map
-
   }
 
 }
