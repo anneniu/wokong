@@ -42,7 +42,6 @@ object StockHolders extends App {
         tableTop = null
       }
 
-
       var partOneDates = new Elements()
 
       if(tableTop!= null){

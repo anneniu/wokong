@@ -1,8 +1,9 @@
 package com.kumyan.companyinfo.db
 
-import java.sql.DriverManager
+import java.sql.{PreparedStatement, DriverManager}
 
-import org.apache.hadoop.hbase.client.{Connection, Put, Table}
+import com.ibm.icu.text.CharsetDetector
+import org.apache.hadoop.hbase.client.{Get, Connection, Put, Table}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 
@@ -76,6 +77,82 @@ object DbConnection {
     admin.close()
 
   }
+
+  def insert( prep: PreparedStatement, params: Any*): Unit = {
+
+    try {
+
+      for (i <- params.indices) {
+
+        val param = params(i)
+
+        param match {
+
+          case param: String =>
+            prep.setString(i + 1, param)
+          case param: Int =>
+            prep.setInt(i + 1, param)
+          case param: Boolean =>
+            prep.setBoolean(i + 1, param)
+          case param: Long =>
+            prep.setLong(i + 1, param)
+          case param: Double =>
+            prep.setDouble(i + 1, param)
+          case _ =>
+           println("Unknown Type")
+        }
+
+      }
+
+      prep.executeUpdate
+
+    } catch {
+      case e: Exception =>
+        e.printStackTrace()
+    }
+
+  }
+
+  def query(tableName: String, rowkey: String, hbaseConn:Connection ): (String, String,String,String) = {
+
+    val table = hbaseConn.getTable(TableName.valueOf(tableName))
+
+    val get = new Get(rowkey.getBytes)
+
+    try {
+
+      val companyInStructure= table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(0)))
+
+      val companyExecutives = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(1)))
+
+      val CaptalStructure = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(2)))
+
+      val stockHolders = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(3)))
+
+
+      val encodingOne = new CharsetDetector().setText(companyInStructure).detect().getName
+
+      val encodingTwo = new CharsetDetector().setText(companyExecutives).detect().getName
+
+      val encodingThree = new CharsetDetector().setText(CaptalStructure).detect().getName
+
+      val encodingFour = new CharsetDetector().setText(stockHolders).detect().getName
+
+      (new String(companyInStructure, encodingOne),
+        new String(companyExecutives,encodingTwo),
+        new String(CaptalStructure,encodingThree),
+        new String(stockHolders,encodingFour))
+
+    } catch {
+
+      case e: Exception =>
+        null
+
+    }
+
+  }
+
+
 
 
 }
