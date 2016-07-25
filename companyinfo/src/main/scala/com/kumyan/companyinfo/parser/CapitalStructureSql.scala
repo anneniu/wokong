@@ -7,11 +7,15 @@ import scala.util.parsing.json.JSON
   * Created by anne on 2016/7/24.
   */
 object CapitalStructureSql {
-  def parse(totalJson: String) :(ListBuffer[ListBuffer[ListBuffer[String]]],ListBuffer[ListBuffer[ListBuffer[String]]])= {
 
-    var groupOne = new ListBuffer[ListBuffer[ListBuffer[String]]]()
+  def parse(totalJson: String): (ListBuffer[ListBuffer[String]], ListBuffer[ListBuffer[String]]
+    ,ListBuffer[ListBuffer[String]]) = {
 
-    var groupTwo = new ListBuffer[ListBuffer[ListBuffer[String]]]()
+    var groupOne = new ListBuffer[ListBuffer[String]]()
+
+    var groupTwo = new ListBuffer[ListBuffer[String]]()
+
+    var groupThree = new ListBuffer[ListBuffer[String]]()
 
     var jsonInfo = JSON.parseFull(totalJson)
 
@@ -23,15 +27,22 @@ object CapitalStructureSql {
 
       jsonInfo match {
 
-        case Some(mapInfo) =>{
+        case Some(mapInfo) => {
 
-          val floatHolders = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("十大流通股东", "").asInstanceOf[Map[String, AnyVal]]
+          val partOne = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("股本结构", "").asInstanceOf[List[Map[String, AnyVal]]]
 
-          groupOne = getHolders(floatHolders)
+          val subPartOne = partOne.head.getOrElse("1", "").asInstanceOf[Map[String,AnyVal]]
 
-          val holders = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("十大股东", "").asInstanceOf[Map[String, AnyVal]]
+          val subPartTwo = partOne(1).getOrElse("2", "").asInstanceOf[Map[String,AnyVal]]
 
-          groupTwo = getHolders(holders)
+          groupOne = getTables(subPartOne)
+
+          groupTwo = getTables(subPartTwo)
+
+
+          val partThree = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("历年股本变动", "").asInstanceOf[Map[String, AnyVal]]
+
+          groupThree = specialStuation(partThree)
         }
         case None => println("Parsing failed!")
 
@@ -40,81 +51,131 @@ object CapitalStructureSql {
 
     }
 
-    (groupOne, groupTwo)
+    (groupOne, groupTwo,groupThree)
 
   }
 
-
   //从hbase 表取得数据进行解析
-  def getHolders(mapJson: Map[String, AnyVal]): ListBuffer[ListBuffer[ListBuffer[String]]]={
+  def getTables(mapJson: Map[String, AnyVal]): ListBuffer[ListBuffer[String]] = {
 
-    //first map key is date (serveral tabs) 日期
-    //最外层的ListBuffer[] 存放所有日期的数据
+    var outList = new ListBuffer[ListBuffer[String]]()
 
-    val dateKeys = mapJson.keys
+    val ids = mapJson.keys
 
-    var outList = new ListBuffer[ListBuffer[ListBuffer[String]]]()
+    ids.foreach {
 
-    dateKeys.foreach{//日期
-      x=>{
+      index => {
 
-        val subJson =  mapJson.getOrElse(x,"")
-        if(subJson.toString == "") {
-          return outList
-        }else {
+        //最里层的ListBuffer[] 得到一行的数据
+        var inList = new ListBuffer[String]()
+        //每个行的数据
+        val values = mapJson.getOrElse(index, "")
 
-          val res = subJson.asInstanceOf[Map[String,AnyVal]]
+        inList += index.toString //在每一行数据之前先添加第一列的key值
 
-          //中间的ListBuffer 是存放多行的数据，代表着一个日期的数据
+        if (values.toString.nonEmpty) {
 
-          var midList = new ListBuffer[ListBuffer[String]]()
+          val sub = values.asInstanceOf[Map[String, AnyVal]]
 
-          val ids = res.keys
+          val keys = sub.keys
 
-          ids.foreach {
+          keys.foreach {
 
-            index =>{
+            y => {
 
-              //最里层的ListBuffer[] 得到一行的数据
-              var inList = new ListBuffer[String]()
-              //每个行的数据
-              val values = res.getOrElse(index,"")
+              val result = sub.getOrElse(y, "")
 
-              inList += x.toString //在每一行数据之前先添加日期
-              if(values.toString.nonEmpty){
+              inList += result.toString
 
-                val sub = values.asInstanceOf[Map[String,AnyVal]]
-
-                val keys = sub.keys
-
-                keys.foreach{
-
-                  y=>{
-
-                    val result = sub.getOrElse(y,"")
-
-                    inList += result.toString
-
-                  }
-
-                }
-
-              }
-
-              midList += inList
             }
 
           }
 
-
-          outList += midList
-
         }
+
+        outList+= inList
 
       }
     }
 
-    outList
+   outList
+  }
+
+
+  //从hbase 表取得数据进行解析
+  def specialStuation(mapJson: Map[String, AnyVal]): ListBuffer[ListBuffer[String]] = {
+
+    var outList = new ListBuffer[ListBuffer[String]]()
+
+    val ids = mapJson.keys
+
+    ids.foreach {
+
+      index => {
+
+        //最里层的ListBuffer[] 得到一行的数据
+        var inList = new ListBuffer[String]()
+        //每个行的数据
+        val values = mapJson.getOrElse(index, "")
+
+//        inList += index.toString //在每一行数据之前先添加第一列的key值
+
+        if (values.toString.nonEmpty) {
+
+          val sub = values.asInstanceOf[Map[String, AnyVal]]
+
+          val keys = sub.keys
+
+          keys.foreach {
+
+            y => {
+
+              val result = sub.getOrElse(y, "")
+
+              //也要加上第一行的key值： 针对历年股本变动
+
+              inList += y.toString
+
+              inList += result.toString
+
+            }
+
+          }
+
+        }
+
+        outList+= inList
+
+      }
+    }
+
+    var tranList = new ListBuffer[ListBuffer[String]]()
+
+
+
+    if(null != outList){
+
+      val size = outList.head.indices
+
+      for(i<- size){
+
+        var tranInList = new ListBuffer[String]()
+
+        for(j<- outList.indices){
+
+          val value = outList(j)(i)
+
+          tranInList +=  value
+
+        }
+
+        tranList += tranInList
+
+      }
+
+    }
+
+    tranList
   }
 
 
