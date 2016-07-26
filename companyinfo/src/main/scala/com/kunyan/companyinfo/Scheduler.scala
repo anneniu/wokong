@@ -16,7 +16,6 @@ import scala.xml.XML
   */
 object Scheduler {
 
-
   /**
     * 主程序操作 四个部分 八个表写入数据库，从hbase表的相应表名读取字符串
     *
