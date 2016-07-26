@@ -1,4 +1,4 @@
-package com.kumyan.companyinfo.parser
+package com.kunyan.companyinfo.parser
 
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
@@ -12,6 +12,7 @@ object CpnyExecutives {
 
   /**
     * 公司高管模块解析入口
+    * 写入hbase 表的字符串集合
     *
     * @param stockCode 股票代码
     * @return
@@ -23,10 +24,13 @@ object CpnyExecutives {
     val map = new java.util.HashMap[String, Object]()
 
     if (stockCode.isEmpty) {
-      ""
+
+      return ""
+
     } else {
 
-      val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/CompanyManagement.aspx?code=" + stockCode).userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2").timeout(20000).get()
+      val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/CompanyManagement.aspx?code="
+        + stockCode).userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2").timeout(20000).get()
 
       //高管列表
       var identifier = doc.select("table#gglb_table").toString
@@ -67,7 +71,7 @@ object CpnyExecutives {
       var tableBot = doc.getElementById("glcjj").nextElementSibling()
         .getElementsByTag("table")
 
-      if(tableBot.toString.isEmpty){
+      if (tableBot.toString.isEmpty) {
         tableBot = null
       }
 
@@ -84,10 +88,10 @@ object CpnyExecutives {
       map.put("管理层简介", mapBot)
 
       json = JSONObject.toJSONString(map)
+
     }
 
     json
-
   }
 
   /**
@@ -100,7 +104,7 @@ object CpnyExecutives {
 
     val mapOut = new java.util.HashMap[String, Object]()
 
-    if(children != null){
+    if (children != null) {
 
       for (i <- 0 until children.size) {
 
@@ -127,6 +131,7 @@ object CpnyExecutives {
           } else {
 
             var flag = false
+
             if (total.contains(":")) {
 
               if (total.split(":").length >= 2) {
@@ -134,14 +139,17 @@ object CpnyExecutives {
               }
 
             }
+
             if (flag) {
+
               val key = total.split(":")(0)
               val value = total.split(":")(1)
               mapIn.put(key, value)
 
             } else {
-              val key = name
+
               val value = tagTd.get(j).text()
+
             }
 
           }
@@ -155,7 +163,6 @@ object CpnyExecutives {
     }
 
     mapOut
-
   }
 
   /**
@@ -170,9 +177,13 @@ object CpnyExecutives {
 
     val map = new java.util.HashMap[String, Object]()
 
-    if(children != null){
+    if (children != null) {
 
       val rowkeys = children.first().getElementsByTag("th")
+
+      if (rowkeys.get(1).className() == "move_th move_th_left") {
+        rowkeys.remove(1)
+      }
 
       for (i <- 1 until children.size) {
 
@@ -193,6 +204,7 @@ object CpnyExecutives {
             map.put(values.get(0).text, mapIn)
 
           }
+
           case 1 => {
 
             val th = children.get(i).getElementsByTag("th")
@@ -208,6 +220,7 @@ object CpnyExecutives {
 
             map.put(th.text(), mapIn)
           }
+
           case _ => {
             println("Please give correct value!")
           }
@@ -221,6 +234,5 @@ object CpnyExecutives {
     map
 
   }
-
 
 }

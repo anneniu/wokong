@@ -1,5 +1,4 @@
-package com.kumyan.companyinfo.parser
-
+package com.kunyan.companyinfo.parser
 
 import org.jsoup.select.Elements
 import net.minidev.json.JSONObject
@@ -9,11 +8,13 @@ import org.jsoup.Jsoup
 /**
   * Created by zhangruibo on 2016/7/21.
   * update by niujiaojiao on 2016/7/23.
+  * 股东研究
   */
-object StockHolders extends App {
+object StockHolders {
 
   /**
     * 股东研究模块入口
+    * 写入hbase 表的字符串集合
     * @param stockCode 股票代码
     * @return 整个板块的字符串
     */
@@ -24,7 +25,9 @@ object StockHolders extends App {
     val map = new java.util.HashMap[String, Object]()
 
     if (stockCode.isEmpty) {
-      ""
+
+      return ""
+
     } else {
 
       val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/ShareholderResearch.aspx?code=" + stockCode).userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2").timeout(20000).get()
@@ -35,23 +38,26 @@ object StockHolders extends App {
 
       if (doc.toString.contains("TTCS_Table_Div")) {
 
-        tableTop = doc.getElementById("TTCS_Table_Div")
-          .select("table tbody")
+        tableTop = doc.getElementById("TTCS_Table_Div").select("table tbody")
 
       } else {
+
         tableTop = null
+
       }
 
       var partOneDates = new Elements()
 
-      if(tableTop!= null){
+      if (tableTop != null) {
 
         if (doc.toString.contains("sdltgd")) {
 
           partOneDates = doc.getElementById("sdltgd").nextElementSibling().getElementsByTag("li")
 
         } else {
+
           partOneDates = null
+
         }
 
       }
@@ -62,23 +68,26 @@ object StockHolders extends App {
 
       if (doc.toString.contains("TTS_Table_Div")) {
 
-        tableBot = doc.getElementById("TTS_Table_Div")
-          .select("table tbody")
+        tableBot = doc.getElementById("TTS_Table_Div").select("table tbody")
 
       } else {
+
         tableBot = null
+
       }
 
       var partTwoDates = new Elements()
 
-      if(tableBot != null){
+      if (tableBot != null) {
 
         if (doc.toString.contains("sdgd")) {
 
           partTwoDates = doc.getElementById("sdgd").nextElementSibling().getElementsByTag("li")
 
         } else {
+
           partTwoDates = null
+
         }
 
       }
@@ -95,11 +104,11 @@ object StockHolders extends App {
     }
 
     json
-
   }
 
   /**
-    *  获取相对应的map 集合
+    * 获取相对应的map 集合
+    *
     * @param children 所有的对应的日期的表的字符串：分析以日期字符串对象的个数为基准，表的字符串的个数不符合需求（始终是五个）
     * @param allDates 所有的日期的字符串
     * @return map 集合
@@ -108,7 +117,7 @@ object StockHolders extends App {
 
     val map = new java.util.HashMap[String, Object]()
 
-    if (children != null && allDates!= null) {
+    if (children != null && allDates != null) {
 
       for (i <- 0 until allDates.size) {
 
@@ -131,7 +140,7 @@ object StockHolders extends App {
             if (k == 0) {
               mapIn.put(thkeys.get(0).text(), subvalue.text)
             } else {
-              mapIn.put(thkeys.get(k + 1).text(), values.get(k).text)
+              mapIn.put(thkeys.get(k).text(), values.get(k - 1).text)
             }
 
           }

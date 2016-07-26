@@ -1,4 +1,4 @@
-package com.kumyan.companyinfo.db
+package com.kunyan.companyinfo.db
 
 import java.sql.{PreparedStatement, DriverManager}
 
@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
   */
 object DbConnection {
 
-  val TABLE_NAME = "company_info"
+  val TABLE_NAME = "company_info_latest"
 
   val COLUMN_FAMILY_NAME = "company"
 
@@ -113,6 +113,13 @@ object DbConnection {
 
   }
 
+  /**
+    * 读取hbase 表四列的信息
+    * @param tableName  表名
+    * @param rowkey  行 键值
+    * @param hbaseConn  hbase 连接
+    * @return 表中四列的信息
+    */
   def query(tableName: String, rowkey: String, hbaseConn:Connection ): (String, String,String,String) = {
 
     val table = hbaseConn.getTable(TableName.valueOf(tableName))
@@ -151,8 +158,5 @@ object DbConnection {
     }
 
   }
-
-
-
 
 }

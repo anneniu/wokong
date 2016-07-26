@@ -1,4 +1,4 @@
-package com.kumyan.companyinfo.parser
+package com.kunyan.companyinfo.parser
 
 import org.jsoup.Jsoup
 import net.minidev.json.JSONObject
@@ -8,15 +8,16 @@ import org.jsoup.select.Elements
   * Created by niujiaojiao on 2016/7/21.
   */
 //股本结构
-//四部分：限售解禁，股本结构，历年股本变动，股本构成
+//四部分：限售解禁，股本结构，历年股本变动,股本构成
 
 object CapitalStructure {
 
   /**
     * 股本结构模块入口
+    * 写入hbase 表的字符串集合
     *
     * @param stockCode 股票代码字符串
-    * @return 整个部分的综合json 字符串
+    * @return 整个部分的综合json 字符串：四个部分的并集
     */
   def parseCapitalStructure(stockCode: String): String = {
 
@@ -25,7 +26,9 @@ object CapitalStructure {
     val map = new java.util.HashMap[String, Object]()
 
     if (stockCode.isEmpty) {
-      ""
+
+      return ""
+
     } else {
 
       val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/CapitalStockStructure.aspx?code=" + stockCode).userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2").timeout(20000).get()
@@ -69,6 +72,7 @@ object CapitalStructure {
         } else {
 
           partTwoTableTwo = null
+
         }
 
         //历年股本变动
@@ -82,6 +86,7 @@ object CapitalStructure {
         } else {
 
           partThree = null
+
         }
 
         //股本构成
@@ -98,6 +103,7 @@ object CapitalStructure {
         } else {
 
           partFour = null
+
         }
 
 
@@ -114,10 +120,12 @@ object CapitalStructure {
         map.put("限售解禁", mapOne)
 
         map.put("股本结构", new java.util.HashMap[String, Object]() {
+
           {
             put("1", mapTwoTableOne)
             put("2", mapTwoTableTwo)
           }
+
         })
 
         map.put("历年股本变动", mapPartThree)
@@ -127,15 +135,16 @@ object CapitalStructure {
         json = JSONObject.toJSONString(map)
 
       }
+
       catch {
         case e: Exception =>
           e.printStackTrace()
 
       }
+
     }
 
     json
-
   }
 
 }
