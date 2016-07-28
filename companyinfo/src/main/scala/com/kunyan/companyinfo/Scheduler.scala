@@ -23,9 +23,9 @@ object Scheduler {
     */
   def main(args: Array[String]): Unit = {
 
-    val configFile = XML.loadFile("E:/wokong/companyinfo/src/main/resources/configFile.xml")
+    val configFile = XML.loadFile(ClassLoader.getSystemResource("configFile.xml").toString.split("file:/")(1))
 
-    //hbase 连接信息
+    //    //hbase 连接信息
     val hbaseConf = HBaseConfiguration.create
 
     hbaseConf.set("hbase.rootdir", (configFile \ "hbase" \ "rootDir").text)
@@ -38,14 +38,14 @@ object Scheduler {
     val hbaseTable = hbaseConnection.getTable(TableName.valueOf(DbConnection.TABLE_NAME))
 
     Class.forName("com.mysql.jdbc.Driver")
-    //
+
     val mysqlConnection = DriverManager.getConnection((configFile \ "mysql" \ "url").text,
       (configFile \ "mysql" \ "username").text, (configFile \ "mysql" \ "password").text)
-    //
+
     mysqlConnection.setAutoCommit(true)
 
-    //股票代码
-    val file = Source.fromFile("E:/wokong/companyinfo/src/main/resources/StockCode.txt").getLines()
+    //    股票代码
+    val file = Source.fromFile(ClassLoader.getSystemResource("StockCode.txt").toString.split("file:/")(1)).getLines()
 
     file.foreach {
 
@@ -288,13 +288,9 @@ object Scheduler {
 
               var generalCapital = 0.0
               var limitShare = 0.0
-
               var floatShare = 0.0
-
               var listedShare = 0.0
-
               var stateBacking = 0.0
-
               var stateBackingLimit = 0.0
 
               for (j <- info.indices) {
@@ -343,7 +339,7 @@ object Scheduler {
 
         }
 
-        //        //第四部分
+        //第四部分
         if (null != getRes._4) {
 
           // two tables:float_stockholder   and stockholder

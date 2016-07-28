@@ -136,7 +136,6 @@ object DbConnection {
 
       val stockHolders = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(3)))
 
-
       val encodingOne = new CharsetDetector().setText(companyInStructure).detect().getName
 
       val encodingTwo = new CharsetDetector().setText(companyExecutives).detect().getName
