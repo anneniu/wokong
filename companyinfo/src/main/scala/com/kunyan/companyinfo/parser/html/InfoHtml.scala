@@ -1,14 +1,14 @@
-package com.kunyan.companyinfo.parser
+package com.kunyan.companyinfo.parser.html
 
+import net.minidev.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
-import net.minidev.json.JSONObject
 
 /**
   * Created by niujiaojiao on 2016/7/21.
   */
 //两部分：基本资料,发行相关
-object CpnyInstructure {
+object InfoHtml {
 
   /**
     * 公司概况解析入口

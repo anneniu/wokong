@@ -1,8 +1,8 @@
-package com.kunyan.companyinfo.parser
+package com.kunyan.companyinfo.parser.html
 
-import org.jsoup.select.Elements
 import net.minidev.json.JSONObject
 import org.jsoup.Jsoup
+import org.jsoup.select.Elements
 
 
 /**
@@ -10,7 +10,7 @@ import org.jsoup.Jsoup
   * update by niujiaojiao on 2016/7/23.
   * 股东研究
   */
-object StockHolders {
+object HolderHtml {
 
   /**
     * 股东研究模块入口

@@ -1,7 +1,7 @@
-package com.kunyan.companyinfo.parser
+package com.kunyan.companyinfo.parser.html
 
-import org.jsoup.Jsoup
 import net.minidev.json.JSONObject
+import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 
 /**
@@ -10,7 +10,7 @@ import org.jsoup.select.Elements
 //股本结构
 //四部分：限售解禁，股本结构，历年股本变动,股本构成
 
-object CapitalStructure {
+object StructHtml {
 
   /**
     * 股本结构模块入口
@@ -105,11 +105,11 @@ object CapitalStructure {
 
         }
 
-        val mapOne = CpnyExecutives.parseSingleTable(tableTop, 0)
-        val mapTwoTableOne = CpnyExecutives.parseSingleTable(partTwoTableOne, 0)
-        val mapTwoTableTwo = CpnyExecutives.parseSingleTable(partTwoTableTwo, 0)
-        val mapPartThree = CpnyExecutives.parseSingleTable(partThree, 1)
-        val mapPartFour = CpnyExecutives.parseSingleTable(partFour, 1)
+        val mapOne = LeaderHtml.parseSingleTable(tableTop, 0)
+        val mapTwoTableOne = LeaderHtml.parseSingleTable(partTwoTableOne, 0)
+        val mapTwoTableTwo = LeaderHtml.parseSingleTable(partTwoTableTwo, 0)
+        val mapPartThree = LeaderHtml.parseSingleTable(partThree, 1)
+        val mapPartFour = LeaderHtml.parseSingleTable(partFour, 1)
 
         map.put("限售解禁", mapOne)
         map.put("股本结构", new java.util.HashMap[String, Object]() {

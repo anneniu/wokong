@@ -1,4 +1,4 @@
-package com.kunyan.companyinfo.parser
+package com.kunyan.companyinfo.parser.json
 
 import scala.collection.mutable.ListBuffer
 import scala.util.parsing.json.JSON
@@ -7,41 +7,40 @@ import scala.util.parsing.json.JSON
   * Created by niujiaojiao on 2016/7/24.
   * 公司高管
   */
-object CpnyExecutiveSql {
+object LeaderJson {
 
-  def parse(totalJson: String): (ListBuffer[ListBuffer[String]], ListBuffer[ListBuffer[String]]) = {
+  def parse(json: String): (ListBuffer[ListBuffer[String]], ListBuffer[ListBuffer[String]]) = {
 
-    var groupOne = new ListBuffer[ListBuffer[String]]()
-    var groupTwo = new ListBuffer[ListBuffer[String]]()
-    var jsonInfo = JSON.parseFull(totalJson)
+    var leaderList = new ListBuffer[ListBuffer[String]]()
+    var introList = new ListBuffer[ListBuffer[String]]()
+    val map = JSON.parseFull(json)
 
-    if (jsonInfo.isEmpty) {
+    if (map.isEmpty) {
 
       println("\"JSON parse value is empty,please have a check!\"")
 
     } else {
 
-      jsonInfo match {
+        try {
 
-        case Some(mapInfo) => {
+          val leaderMap = map.asInstanceOf[Map[String, AnyVal]].getOrElse("高管列表", "").asInstanceOf[Map[String, AnyVal]]
+          leaderList = CommonJson.parse(leaderMap, 1)
+          val introMap = map.asInstanceOf[Map[String, AnyVal]].getOrElse("管理层简介", "").asInstanceOf[Map[String, AnyVal]]
+          introList = parseMap(introMap)
 
-          val partOne = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("高管列表", "").asInstanceOf[Map[String, AnyVal]]
-          groupOne = CapitalStructureSql.getTables(partOne, 1)
-          val partTwo = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("管理层简介", "").asInstanceOf[Map[String, AnyVal]]
-          groupTwo = getResult(partTwo)
+        } catch {
 
-        }
-        case None => println("Parsing failed!")
-        case other => println("Unknown data structure :" + other)
+          case e: Exception =>
+            e.printStackTrace()
 
       }
 
     }
 
-    (groupOne, groupTwo)
+    (leaderList, introList)
   }
 
-  def getResult(mapJson: Map[String, AnyVal]): ListBuffer[ListBuffer[String]] = {
+  def parseMap(mapJson: Map[String, AnyVal]): ListBuffer[ListBuffer[String]] = {
 
     var outList = new ListBuffer[ListBuffer[String]]()
     val ids = mapJson.keys
@@ -52,6 +51,7 @@ object CpnyExecutiveSql {
 
         //最里层的ListBuffer[] 得到一行的数据
         var inList = new ListBuffer[String]()
+
         //每个行的数据
         val values = mapJson.getOrElse(index, "")
         inList += index.toString //在每一行数据之前先添加第一列的key值(name)

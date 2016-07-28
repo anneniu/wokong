@@ -1,14 +1,14 @@
-package com.kunyan.companyinfo.parser
+package com.kunyan.companyinfo.parser.html
 
+import net.minidev.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
-import net.minidev.json.JSONObject
 
 /**
   * Created by niujiaojiao on 2016/7/21.
   */
 //高管列表，高管持股变动，管理层简介
-object CpnyExecutives {
+object LeaderHtml {
 
   /**
     * 公司高管模块解析入口

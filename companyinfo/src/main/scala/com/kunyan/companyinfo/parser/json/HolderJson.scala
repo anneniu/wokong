@@ -1,4 +1,4 @@
-package com.kunyan.companyinfo.parser
+package com.kunyan.companyinfo.parser.json
 
 import scala.collection.mutable.ListBuffer
 import scala.util.parsing.json.JSON
@@ -7,7 +7,7 @@ import scala.util.parsing.json.JSON
   * Created by niujiaojiao  on 2016/7/24.
   * 股东研究
   */
-object stockHolderSql {
+object HolderJson {
 
   /**
     * 股东研究解析读取数据写入数据库
@@ -17,33 +17,31 @@ object stockHolderSql {
     */
   def parse(totalJson: String): (ListBuffer[ListBuffer[ListBuffer[String]]], ListBuffer[ListBuffer[ListBuffer[String]]]) = {
 
-    var groupOne = new ListBuffer[ListBuffer[ListBuffer[String]]]()
-    var groupTwo = new ListBuffer[ListBuffer[ListBuffer[String]]]()
-    val jsonInfo = JSON.parseFull(totalJson)
+    var floatHoldersList = new ListBuffer[ListBuffer[ListBuffer[String]]]()
+    var holdersList = new ListBuffer[ListBuffer[ListBuffer[String]]]()
+    val map = JSON.parseFull(totalJson)
 
-    if (jsonInfo.isEmpty) {
+    if (map.isEmpty) {
 
       println("\"JSON parse value is empty,please have a check!\"")
 
     } else {
 
-      jsonInfo match {
+      try {
 
-        case Some(mapInfo) => {
+        val floatHoldersMap = map.asInstanceOf[Map[String, AnyVal]].getOrElse("十大流通股东", "").asInstanceOf[Map[String, AnyVal]]
+        floatHoldersList = parseMap(floatHoldersMap)
+        val holdersMap = map.asInstanceOf[Map[String, AnyVal]].getOrElse("十大股东", "").asInstanceOf[Map[String, AnyVal]]
+        holdersList = parseMap(holdersMap)
 
-          val floatHolders = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("十大流通股东", "").asInstanceOf[Map[String, AnyVal]]
-          groupOne = getHolders(floatHolders)
-          val holders = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("十大股东", "").asInstanceOf[Map[String, AnyVal]]
-          groupTwo = getHolders(holders)
-
-        }
-        case None => println("Parsing failed!")
-        case other => println("Unknown data structure :" + other)
+      }catch {
+        case e: Exception =>
+          e.printStackTrace()
       }
 
     }
 
-    (groupOne, groupTwo)
+    (floatHoldersList, holdersList)
   }
 
   /**
@@ -52,7 +50,7 @@ object stockHolderSql {
     * @param mapJson map集合
     * @return 需要插入数据库的字符串集合
     */
-  def getHolders(mapJson: Map[String, AnyVal]): ListBuffer[ListBuffer[ListBuffer[String]]] = {
+  def parseMap(mapJson: Map[String, AnyVal]): ListBuffer[ListBuffer[ListBuffer[String]]] = {
 
     //first map key is date (serveral tabs) 日期
     //最外层的ListBuffer[] 存放所有日期的数据

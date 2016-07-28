@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by niujiaojiao on 2016/7/21.
   */
-object DbConnection {
+object HbaseConnection {
 
   val TABLE_NAME = "company_info_latest_second"
   val COLUMN_FAMILY_NAME = "company"
@@ -71,11 +71,11 @@ object DbConnection {
     val admin = hbaseConn.getAdmin
     admin.disableTable(tableName)
     admin.deleteTable(tableName)
-    admin.close()
 
+    admin.close()
   }
 
-  def insert( prep: PreparedStatement, params: Any*): Unit = {
+  def insert(prep: PreparedStatement, params: Any*): Unit = {
 
     try {
 
@@ -102,6 +102,7 @@ object DbConnection {
       }
 
       prep.executeUpdate
+
     } catch {
       case e: Exception =>
         e.printStackTrace()
@@ -111,39 +112,38 @@ object DbConnection {
 
   /**
     * 读取hbase 表四列的信息
+    *
     * @param tableName  表名
-    * @param rowkey  行 键值
+    * @param rowKey  行 键值
     * @param hbaseConn  hbase 连接
     * @return 表中四列的信息
     */
-  def query(tableName: String, rowkey: String, hbaseConn:Connection ): (String, String,String,String) = {
+  def query(tableName: String, rowKey: String, hbaseConn:Connection ): (String, String, String, String) = {
 
     val table = hbaseConn.getTable(TableName.valueOf(tableName))
 
-    val get = new Get(rowkey.getBytes)
+    val get = new Get(rowKey.getBytes)
 
     try {
 
-      val companyInStructure= table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(0)))
-      val companyExecutives = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(1)))
-      val CaptalStructure = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(2)))
-      val stockHolders = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(3)))
-      val encodingOne = new CharsetDetector().setText(companyInStructure).detect().getName
-      val encodingTwo = new CharsetDetector().setText(companyExecutives).detect().getName
-      val encodingThree = new CharsetDetector().setText(CaptalStructure).detect().getName
-      val encodingFour = new CharsetDetector().setText(stockHolders).detect().getName
+      val info= table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME.head))
+      val leader = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(1)))
+      val struct = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(2)))
+      val holder = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(3)))
 
-      (new String(companyInStructure, encodingOne),
-        new String(companyExecutives,encodingTwo),
-        new String(CaptalStructure,encodingThree),
-        new String(stockHolders,encodingFour))
+      (encode(info), encode(leader), encode(struct), encode(holder))
 
     } catch {
+
       case e: Exception =>
         null
 
     }
 
+  }
+
+  def encode(bytes: Array[Byte]): String = {
+    new String(bytes, new CharsetDetector().setText(bytes).detect().getName)
   }
 
 }
