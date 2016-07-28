@@ -21,7 +21,6 @@ object StockHolders {
   def parseStockHolders(stockCode: String): String = {
 
     var json = ""
-
     val map = new java.util.HashMap[String, Object]()
 
     if (stockCode.isEmpty) {
@@ -33,7 +32,6 @@ object StockHolders {
       val doc = Jsoup.connect("http://f10.eastmoney.com/f10_v2/ShareholderResearch.aspx?code=" + stockCode).userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2").timeout(20000).get()
 
       //十大流通股东
-
       var tableTop = new Elements()
 
       if (doc.toString.contains("TTCS_Table_Div")) {
@@ -93,14 +91,11 @@ object StockHolders {
       }
 
       val mapTop = getJson(tableTop, partOneDates)
-
       val mapBot = getJson(tableBot, partTwoDates)
-
       map.put("十大流通股东", mapTop)
-
       map.put("十大股东", mapBot)
-
       json = JSONObject.toJSONString(map)
+
     }
 
     json
@@ -122,17 +117,13 @@ object StockHolders {
       for (i <- 0 until allDates.size) {
 
         val tr = children.get(i).select("tr")
-
         val thkeys = tr.first().getElementsByTag("th")
-
         val mapOut = new java.util.HashMap[String, Object]()
 
         for (j <- 1 until tr.size) {
 
           val subvalue = tr.get(j).getElementsByTag("th")
-
           val values = tr.get(j).getElementsByTag("td")
-
           val mapIn = new java.util.HashMap[String, Object]()
 
           for (k <- 0 until thkeys.size) {
@@ -152,6 +143,7 @@ object StockHolders {
           }
 
           mapOut.put(j.toString, mapIn)
+
         }
 
         map.put(allDates.get(i).text, mapOut)

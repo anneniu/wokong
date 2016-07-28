@@ -22,7 +22,6 @@ object CapitalStructure {
   def parseCapitalStructure(stockCode: String): String = {
 
     var json = ""
-
     val map = new java.util.HashMap[String, Object]()
 
     if (stockCode.isEmpty) {
@@ -106,30 +105,20 @@ object CapitalStructure {
 
         }
 
-
         val mapOne = CpnyExecutives.parseSingleTable(tableTop, 0)
-
         val mapTwoTableOne = CpnyExecutives.parseSingleTable(partTwoTableOne, 0)
-
         val mapTwoTableTwo = CpnyExecutives.parseSingleTable(partTwoTableTwo, 0)
-
         val mapPartThree = CpnyExecutives.parseSingleTable(partThree, 1)
-
         val mapPartFour = CpnyExecutives.parseSingleTable(partFour, 1)
 
         map.put("限售解禁", mapOne)
-
         map.put("股本结构", new java.util.HashMap[String, Object]() {
-
           {
             put("1", mapTwoTableOne)
             put("2", mapTwoTableTwo)
           }
-
         })
-
         map.put("历年股本变动", mapPartThree)
-
         map.put("股本构成", mapPartFour)
 
         json = JSONObject.toJSONString(map)

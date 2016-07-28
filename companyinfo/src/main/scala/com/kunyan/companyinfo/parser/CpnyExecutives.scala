@@ -20,7 +20,6 @@ object CpnyExecutives {
   def parseCpnyExecutives(stockCode: String): String = {
 
     var json = ""
-
     val map = new java.util.HashMap[String, Object]()
 
     if (stockCode.isEmpty) {
@@ -34,7 +33,6 @@ object CpnyExecutives {
 
       //高管列表
       var identifier = doc.select("table#gglb_table").toString
-
       var tableTop = new Elements()
 
       if (doc.getElementById("gglb")
@@ -76,17 +74,12 @@ object CpnyExecutives {
       }
 
       val mapTop = parseSingleTable(tableTop, 0)
-
       val mapMid = parseSingleTable(tableMid, 0)
-
       val mapBot = parseMultiTables(tableBot)
 
       map.put("高管列表", mapTop)
-
       map.put("高管持股变动", mapMid)
-
       map.put("管理层简介", mapBot)
-
       json = JSONObject.toJSONString(map)
 
     }
@@ -109,13 +102,9 @@ object CpnyExecutives {
       for (i <- 0 until children.size) {
 
         val list = children.get(i)
-
         val tagTd = list.getElementsByTag("td")
-
         val mapIn = new java.util.HashMap[String, Object]()
-
         val nameText = tagTd.get(0).text
-
         val name = nameText.substring(1, nameText.length).trim()
 
         for (j <- 1 until tagTd.size) {
@@ -133,11 +122,9 @@ object CpnyExecutives {
             var flag = false
 
             if (total.contains(":")) {
-
               if (total.split(":").length >= 2) {
                 flag = true
               }
-
             }
 
             if (flag) {
@@ -192,13 +179,10 @@ object CpnyExecutives {
           case 0 => {
 
             val values = children.get(i).getElementsByTag("td")
-
             val mapIn = new java.util.HashMap[String, Object]()
 
             for (j <- 1 until values.size) {
-
               mapIn.put(rowkeys.get(j).text, values.get(j).text)
-
             }
 
             map.put(values.get(0).text, mapIn)
@@ -209,16 +193,14 @@ object CpnyExecutives {
 
             val th = children.get(i).getElementsByTag("th")
             val values = children.get(i).getElementsByTag("td")
-
             val mapIn = new java.util.HashMap[String, Object]()
 
             for (j <- 0 until values.size) {
-
               mapIn.put(rowkeys.get(j + 1).text, values.get(j).text)
-
             }
 
             map.put(th.text(), mapIn)
+
           }
 
           case _ => {

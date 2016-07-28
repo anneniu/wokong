@@ -27,21 +27,14 @@ object Scheduler {
 
     //    //hbase 连接信息
     val hbaseConf = HBaseConfiguration.create
-
     hbaseConf.set("hbase.rootdir", (configFile \ "hbase" \ "rootDir").text)
     hbaseConf.set("hbase.zookeeper.quorum", (configFile \ "hbase" \ "ip").text)
-
     val hbaseConnection = org.apache.hadoop.hbase.client.ConnectionFactory.createConnection(hbaseConf)
-
     val familyname = List[String](DbConnection.COLUMN_FAMILY_NAME)
-
     val hbaseTable = hbaseConnection.getTable(TableName.valueOf(DbConnection.TABLE_NAME))
-
     Class.forName("com.mysql.jdbc.Driver")
-
     val mysqlConnection = DriverManager.getConnection((configFile \ "mysql" \ "url").text,
       (configFile \ "mysql" \ "username").text, (configFile \ "mysql" \ "password").text)
-
     mysqlConnection.setAutoCommit(true)
 
     //    股票代码
@@ -52,7 +45,6 @@ object Scheduler {
       x => {
 
         val getRes = DbConnection.query(DbConnection.TABLE_NAME, x, hbaseConnection)
-
         //第一部分
         if (null != getRes._1) {
 
@@ -113,11 +105,9 @@ object Scheduler {
           val stockExecutiveSql = mysqlConnection.prepareStatement("INSERT INTO stock_executive " +
             "(stock_code,number,name,sex,age,education,duty)" +
             " VALUES (?,?,?,?,?,?,?)")
-
           val executivesProfileSql = mysqlConnection.prepareStatement("INSERT INTO executives_profile " +
             "(stock_code,name,sex,education,position,brief_intro)" +
             " VALUES (?,?,?,?,?,?)")
-
           //Table one
           result._1.foreach {
 
@@ -212,7 +202,6 @@ object Scheduler {
               }
 
               val percent = info(2)
-
               var res = 0.toDouble
 
               if (percent.nonEmpty) {
@@ -248,14 +237,12 @@ object Scheduler {
               }
 
               val percent = info(2)
-
               // 百分比要转换成小数
               var res = 0.toDouble
 
               if (percent.nonEmpty) {
 
                 if (percent.contains("%")) {
-
                   res = (percent.split("%")(0).toDouble / 100).formatted("%.4f").toDouble
                 }
 
@@ -316,16 +303,19 @@ object Scheduler {
                   if (info(j + 1).toString.nonEmpty) {
                     listedShare = info(j + 1).toString.toDouble
                   }
+
                 } else if (info(j).startsWith("国家持股")) {
 
                   if (info(j + 1).toString.nonEmpty) {
                     stateBacking = info(j + 1).toString.toDouble
                   }
+
                 } else if (info(j).startsWith("国家持股(受限)")) {
 
                   if (info(j + 1).toString.nonEmpty) {
                     stateBackingLimit = info(j + 1).toString.toDouble
                   }
+
                 }
 
               }
@@ -344,14 +334,10 @@ object Scheduler {
 
           // two tables:float_stockholder   and stockholder
           val result = stockHolderSql.parse(getRes._4)
-
           val floatSql = mysqlConnection.prepareStatement("INSERT INTO top10_float_stockholder (stock_code, date, rank, stockholder_name,stockholder_nature, share_type, shares_number, total_ratio, change_share,change_ratio)" +
             " VALUES (?,?,?,?,?,?,?,?,?,?)")
-          //
           val holderSql = mysqlConnection.prepareStatement("INSERT INTO top10_stockholder (stock_code, date, rank, stockholder_name, share_type, shares_number, total_ratio, change_share,change_ratio) VALUES (?,?,?,?,?,?,?,?,?)")
-
           val floatData = result._1
-
           val nonfloatData = result._2
 
           //十大流通股东
@@ -417,7 +403,6 @@ object Scheduler {
               var changeShare = ""
               var changeRatio = ""
 
-
               for (k <- midData.indices) {
 
                 //(2015-06-30, 流通A股,限售流通A股, 3.65%, 58,563,387, 157,487, 4, 0.27%)
@@ -451,9 +436,7 @@ object Scheduler {
     }
 
     println("Done!")
-
     hbaseConnection.close()
-
     mysqlConnection.close()
   }
 
@@ -470,11 +453,9 @@ object Scheduler {
     val file = Source.fromFile(path).mkString
 
     file.foreach {
-
       x => {
         result += x.toString
       }
-
     }
 
     result

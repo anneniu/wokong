@@ -20,7 +20,6 @@ object CpnyInstructure {
   def parseCpnyInstructure(stockCode: String): String = {
 
     var json = ""
-
     val map = new java.util.HashMap[String, Object]()
 
     if (stockCode.nonEmpty) {
@@ -42,13 +41,9 @@ object CpnyInstructure {
       }
 
       val mapTop = getJson(tableTop)
-
       val mapBot = getJson(tableBot)
-
       map.put("基本资料", mapTop)
-
       map.put("发行相关", mapBot)
-
       json = JSONObject.toJSONString(map)
 
     }
@@ -69,13 +64,10 @@ object CpnyInstructure {
     if (children != null) {
 
       val keys = children.first().getElementsByTag("th")
-
       val values = children.first().getElementsByTag("td")
-
       assert(keys.size == values.size)
 
       for (i <- 0 until keys.size) {
-
         map.put(keys.get(i).text, values.get(i).text)
       }
 

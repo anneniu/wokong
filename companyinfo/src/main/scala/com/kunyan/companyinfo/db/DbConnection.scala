@@ -15,9 +15,7 @@ import scala.collection.mutable.ListBuffer
 object DbConnection {
 
   val TABLE_NAME = "company_info_latest_second"
-
   val COLUMN_FAMILY_NAME = "company"
-
   val FAMILY_NAME = ListBuffer("CompanyStructure", "CapitalStructure", "CompanyExecutives", "StockHolders")
 
   /**
@@ -51,7 +49,6 @@ object DbConnection {
   def putResultToTable(table: Table, stockID: String, content: ListBuffer[String]): Unit = {
 
     assert(content.size == FAMILY_NAME.size)
-
     val resultPut = new Put(Bytes.toBytes(stockID))
 
     for (i <- FAMILY_NAME.indices) {
@@ -105,7 +102,6 @@ object DbConnection {
       }
 
       prep.executeUpdate
-
     } catch {
       case e: Exception =>
         e.printStackTrace()
@@ -129,19 +125,12 @@ object DbConnection {
     try {
 
       val companyInStructure= table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(0)))
-
       val companyExecutives = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(1)))
-
       val CaptalStructure = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(2)))
-
       val stockHolders = table.get(get).getValue(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(3)))
-
       val encodingOne = new CharsetDetector().setText(companyInStructure).detect().getName
-
       val encodingTwo = new CharsetDetector().setText(companyExecutives).detect().getName
-
       val encodingThree = new CharsetDetector().setText(CaptalStructure).detect().getName
-
       val encodingFour = new CharsetDetector().setText(stockHolders).detect().getName
 
       (new String(companyInStructure, encodingOne),
@@ -150,7 +139,6 @@ object DbConnection {
         new String(stockHolders,encodingFour))
 
     } catch {
-
       case e: Exception =>
         null
 

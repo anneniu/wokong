@@ -19,11 +19,8 @@ object CapitalStructureSql {
     , ListBuffer[ListBuffer[String]]) = {
 
     var groupOne = new ListBuffer[ListBuffer[String]]()
-
     var groupTwo = new ListBuffer[ListBuffer[String]]()
-
     var groupThree = new ListBuffer[ListBuffer[String]]()
-
     val jsonInfo = JSON.parseFull(totalJson)
 
     if (jsonInfo.isEmpty) {
@@ -39,11 +36,8 @@ object CapitalStructureSql {
           val partOne = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("股本结构", "").asInstanceOf[Map[String, AnyVal]]
 
           val subPartOne = partOne.getOrElse("1", "").asInstanceOf[Map[String, AnyVal]]
-
           val subPartTwo = partOne.getOrElse("2", "").asInstanceOf[Map[String, AnyVal]]
-
           groupOne = getTables(subPartOne, 0)
-
           groupTwo = getTables(subPartTwo, 0)
 
           val partThree = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("历年股本变动", "").asInstanceOf[Map[String, AnyVal]]
@@ -53,7 +47,6 @@ object CapitalStructureSql {
         }
 
         case None => println("Parsing failed!")
-
         case other => println("Unknown data structure :" + other)
 
       }
@@ -84,13 +77,11 @@ object CapitalStructureSql {
         var inList = new ListBuffer[String]()
         //每个行的数据
         val values = mapJson.getOrElse(index, "")
-
         inList += index.toString //在每一行数据之前先添加第一列的key值
 
         if (values.toString.nonEmpty) {
 
           val sub = values.asInstanceOf[Map[String, AnyVal]]
-
           val keys = sub.keys
 
           keys.foreach {
@@ -121,6 +112,7 @@ object CapitalStructureSql {
         }
 
         outList += inList
+
       }
 
     }
@@ -147,13 +139,11 @@ object CapitalStructureSql {
 
         //最里层的ListBuffer[] 得到一行的数据
         var inList = new ListBuffer[String]()
-        //每个行的数据
         val values = mapJson.getOrElse(index, "")
 
         if (values.toString.nonEmpty) {
 
           val sub = values.asInstanceOf[Map[String, AnyVal]]
-
           val keys = sub.keys
 
           keys.foreach {
@@ -176,9 +166,7 @@ object CapitalStructureSql {
 
                 //加上第一行第一列的元素Key
                 inList += index.toString
-
                 inList += y.toString
-
                 inList += result.toString
 
               }
@@ -204,9 +192,7 @@ object CapitalStructureSql {
         if (outList.head.nonEmpty) {
 
           val size = outList.head.size / 3
-
           var date = ""
-
           var rowkey = ""
 
           for (i <- 0 until size) {
@@ -216,19 +202,14 @@ object CapitalStructureSql {
             for (j <- outList.indices) {
 
               date = outList(j)(i * 3 + 1)
-
               rowkey = outList(j).head
-
               val value = outList(j)(i * 3 + 2)
-
               tranInList += rowkey
-
               tranInList += value
 
             }
 
             tranInList += date
-
             tranList += tranInList
 
           }
@@ -240,7 +221,6 @@ object CapitalStructureSql {
     }
 
     tranList
-
   }
 
 }

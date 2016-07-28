@@ -12,7 +12,6 @@ object CpnyInstructureSql {
   def parse(totalJson: String): ListBuffer[String] = {
 
     var groupOne = new ListBuffer[String]()
-
     val jsonInfo = JSON.parseFull(totalJson)
 
     if (jsonInfo.isEmpty) {
@@ -26,11 +25,10 @@ object CpnyInstructureSql {
         case Some(mapInfo) => {
 
           val partOne = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("基本资料", "").asInstanceOf[Map[String, AnyVal]]
-
           groupOne = getTables(partOne)
+
         }
         case None => println("Parsing failed!")
-
         case other => println("Unknown data structure :" + other)
       }
 

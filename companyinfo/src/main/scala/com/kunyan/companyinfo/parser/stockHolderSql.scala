@@ -18,9 +18,7 @@ object stockHolderSql {
   def parse(totalJson: String): (ListBuffer[ListBuffer[ListBuffer[String]]], ListBuffer[ListBuffer[ListBuffer[String]]]) = {
 
     var groupOne = new ListBuffer[ListBuffer[ListBuffer[String]]]()
-
     var groupTwo = new ListBuffer[ListBuffer[ListBuffer[String]]]()
-
     val jsonInfo = JSON.parseFull(totalJson)
 
     if (jsonInfo.isEmpty) {
@@ -34,15 +32,12 @@ object stockHolderSql {
         case Some(mapInfo) => {
 
           val floatHolders = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("十大流通股东", "").asInstanceOf[Map[String, AnyVal]]
-
           groupOne = getHolders(floatHolders)
-
           val holders = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("十大股东", "").asInstanceOf[Map[String, AnyVal]]
-
           groupTwo = getHolders(holders)
+
         }
         case None => println("Parsing failed!")
-
         case other => println("Unknown data structure :" + other)
       }
 
@@ -63,7 +58,6 @@ object stockHolderSql {
     //最外层的ListBuffer[] 存放所有日期的数据
 
     val dateKeys = mapJson.keys
-
     var outList = new ListBuffer[ListBuffer[ListBuffer[String]]]()
 
     dateKeys.foreach {
@@ -78,10 +72,8 @@ object stockHolderSql {
         } else {
 
           val res = subJson.asInstanceOf[Map[String, AnyVal]]
-
           //中间的ListBuffer 是存放多行的数据，代表着一个日期的数据
           var midList = new ListBuffer[ListBuffer[String]]()
-
           val ids = res.keys
 
           ids.foreach {
@@ -92,7 +84,6 @@ object stockHolderSql {
               var inList = new ListBuffer[String]()
               //每个行的数据
               val values = res.getOrElse(index, "")
-
               inList += x.toString //在每一行数据之前先添加日期
 
               if (values.toString.nonEmpty) {
@@ -122,6 +113,7 @@ object stockHolderSql {
               }
 
               midList += inList
+
             }
 
           }
