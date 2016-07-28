@@ -449,7 +449,6 @@ object Scheduler {
   def getCode(path: String): ListBuffer[String] = {
 
     var result = ListBuffer[String]()
-
     val file = Source.fromFile(path).mkString
 
     file.foreach {
