@@ -135,12 +135,18 @@ object StockHolders {
 
           val mapIn = new java.util.HashMap[String, Object]()
 
-          for (k <- 0 until values.size) {
+          for (k <- 0 until thkeys.size) {
 
             if (k == 0) {
               mapIn.put(thkeys.get(0).text(), subvalue.text)
             } else {
-              mapIn.put(thkeys.get(k).text(), values.get(k - 1).text)
+
+              if(k<= values.size){
+                mapIn.put(thkeys.get(k).text(), values.get(k - 1).text)
+              }else {
+                mapIn.put(thkeys.get(k).text(),"")
+              }
+
             }
 
           }

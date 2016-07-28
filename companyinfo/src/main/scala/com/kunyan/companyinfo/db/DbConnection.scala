@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
   */
 object DbConnection {
 
-  val TABLE_NAME = "company_info_latest"
+  val TABLE_NAME = "company_info_latest_second"
 
   val COLUMN_FAMILY_NAME = "company"
 
