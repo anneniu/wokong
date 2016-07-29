@@ -3,9 +3,8 @@ package com.kunyan.companyinfo
 import java.sql.{Connection, DriverManager}
 
 import com.kunyan.companyinfo.db.HbaseConnection
-import com.kunyan.companyinfo.parser._
 import com.kunyan.companyinfo.parser.json._
-import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
+import org.apache.hadoop.hbase.HBaseConfiguration
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
@@ -175,6 +174,7 @@ object Scheduler {
   }
 
   def shareStruct(mysqlConnection: Connection, x: String, companyResult: (String, String, String, String)): Unit = {
+
     if (null != companyResult._3) {
 
       val result = StructJson.parse(companyResult._3)
@@ -324,9 +324,11 @@ object Scheduler {
       }
 
     }
+
   }
 
   def companyLeader(mysqlConnection: Connection, x: String, companyResult: (String, String, String, String)): Unit = {
+
     if (null != companyResult._2) {
 
       val result = LeaderJson.parse(companyResult._2)
@@ -406,9 +408,11 @@ object Scheduler {
       }
 
     }
+
   }
 
   def companyInfo(mysqlConnection: Connection, x: String, companyResult: (String, String, String, String)): Unit = {
+
     if (null != companyResult._1) {
 
       val map = InfoJson.parse(companyResult._1)
@@ -465,6 +469,7 @@ object Scheduler {
         accountingFirm, companyIntro, businessScope)
 
     }
+
   }
 
   /**

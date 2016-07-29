@@ -4,6 +4,7 @@ import scala.util.parsing.json.JSON
 
 /**
   * Created by niujiaojiao on 2016/7/28.
+  * 公司概况
   */
 object InfoJson {
 

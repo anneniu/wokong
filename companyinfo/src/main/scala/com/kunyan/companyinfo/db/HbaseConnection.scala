@@ -1,6 +1,6 @@
 package com.kunyan.companyinfo.db
 
-import java.sql.{PreparedStatement, DriverManager}
+import java.sql.PreparedStatement
 
 import com.ibm.icu.text.CharsetDetector
 import org.apache.hadoop.hbase.client.{Get, Connection, Put, Table}
@@ -52,9 +52,7 @@ object HbaseConnection {
     val resultPut = new Put(Bytes.toBytes(stockID))
 
     for (i <- FAMILY_NAME.indices) {
-
       resultPut.addColumn(Bytes.toBytes(COLUMN_FAMILY_NAME), Bytes.toBytes(FAMILY_NAME(i)), Bytes.toBytes(content(i)))
-
     }
 
     table.put(resultPut)
@@ -112,7 +110,6 @@ object HbaseConnection {
 
   /**
     * 读取hbase 表四列的信息
-    *
     * @param tableName  表名
     * @param rowKey  行 键值
     * @param hbaseConn  hbase 连接
@@ -121,7 +118,6 @@ object HbaseConnection {
   def query(tableName: String, rowKey: String, hbaseConn:Connection ): (String, String, String, String) = {
 
     val table = hbaseConn.getTable(TableName.valueOf(tableName))
-
     val get = new Get(rowKey.getBytes)
 
     try {

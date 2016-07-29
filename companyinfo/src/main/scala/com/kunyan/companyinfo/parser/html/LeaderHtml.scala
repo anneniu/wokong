@@ -176,7 +176,7 @@ object LeaderHtml {
 
         index match {
 
-          case 0 => {
+          case 0 =>
 
             val values = children.get(i).getElementsByTag("td")
             val mapIn = new java.util.HashMap[String, Object]()
@@ -186,11 +186,7 @@ object LeaderHtml {
             }
 
             map.put(values.get(0).text, mapIn)
-
-          }
-
-          case 1 => {
-
+          case 1 =>
             val th = children.get(i).getElementsByTag("th")
             val values = children.get(i).getElementsByTag("td")
             val mapIn = new java.util.HashMap[String, Object]()
@@ -200,12 +196,8 @@ object LeaderHtml {
             }
 
             map.put(th.text(), mapIn)
-
-          }
-
-          case _ => {
+          case _ =>
             println("Please give correct value!")
-          }
 
         }
 
