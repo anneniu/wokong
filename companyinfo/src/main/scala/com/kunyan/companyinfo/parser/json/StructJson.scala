@@ -21,7 +21,7 @@ object StructJson {
     var limitList = new ListBuffer[ListBuffer[String]]()
     var distributionList = new ListBuffer[ListBuffer[String]]()
     var historyList = new ListBuffer[ListBuffer[String]]()
-    val map = JSON.parseFull(json)
+    val map = JSON.parseFull(json) //解析成功返回Some(map: Map[String, Any])，如果解析失败的话返回None。
 
     if (map.isEmpty) {
 
@@ -31,12 +31,17 @@ object StructJson {
 
       try{
 
-        val shareMap = map.asInstanceOf[Map[String, AnyVal]].getOrElse("股本结构", "").asInstanceOf[Map[String, AnyVal]]
-        limitList = CommonJson.parse(shareMap.getOrElse("1", "").asInstanceOf[Map[String, AnyVal]], 0)
-        distributionList = CommonJson.parse(shareMap.getOrElse("2", "").asInstanceOf[Map[String, AnyVal]], 0)
+        map match {
+          case Some(mapInfo)=>
+            val shareMap = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("股本结构", "").asInstanceOf[Map[String, AnyVal]]
+            limitList = CommonJson.parse(shareMap.getOrElse("1", "").asInstanceOf[Map[String, AnyVal]], 0)
+            distributionList = CommonJson.parse(shareMap.getOrElse("2", "").asInstanceOf[Map[String, AnyVal]], 0)
 
-        val historyMap = map.asInstanceOf[Map[String, AnyVal]].getOrElse("历年股本变动", "").asInstanceOf[Map[String, AnyVal]]
-        historyList = specialSituation(historyMap)
+            val historyMap = mapInfo.asInstanceOf[Map[String, AnyVal]].getOrElse("历年股本变动", "").asInstanceOf[Map[String, AnyVal]]
+            historyList = specialSituation(historyMap)
+          case other => println("parsing failed!")
+
+        }
 
       }catch {
         case e: Exception =>

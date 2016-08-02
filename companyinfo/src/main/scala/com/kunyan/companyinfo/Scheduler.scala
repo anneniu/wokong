@@ -28,6 +28,7 @@ object Scheduler {
     val hbaseConf = HBaseConfiguration.create
     hbaseConf.set("hbase.rootdir", (configFile \ "hbase" \ "rootDir").text)
     hbaseConf.set("hbase.zookeeper.quorum", (configFile \ "hbase" \ "ip").text)
+    println((configFile \ "hbase" \ "ip").text)
     val hbaseConnection = org.apache.hadoop.hbase.client.ConnectionFactory.createConnection(hbaseConf)
 
     val mysqlConnection = DriverManager.getConnection((configFile \ "mysql" \ "url").text,
@@ -65,6 +66,7 @@ object Scheduler {
       mysqlConnection.close()
 
     }
+    println("over")
 
   }
 
@@ -179,8 +181,7 @@ object Scheduler {
 
       val result = StructJson.parse(companyResult._3)
 
-      //股本结构 TableOne
-
+      //      股本结构 TableOne
       val stockLimitSql = mysqlConnection.prepareStatement("INSERT INTO stock_limit " +
         "(stock_code,case_name, value, percent)" +
         " VALUES (?,?,?,?)")
@@ -253,10 +254,12 @@ object Scheduler {
       }
 
       //Table three
-      val calendarStockSql = mysqlConnection.prepareStatement("INSERT INTO calendar_year_stock " +
-        "(stock_code,date,general_capital, state_backing, limit_share," +
-        "state_backing_limit, float_share, listed_share)" +
-        " VALUES (?,?,?,?,?,?,?,?)")
+      val capitalStructureSql = mysqlConnection.prepareStatement("INSERT INTO capital_structure " +
+        "(stock_code,date,general_capital, state_backing,float_stock_limit,state_backing_limit, legalperson_sharehold," +
+        "legalperson_sharehold_limit, foreign_sharehold_limit, other_domes_sharehold,float_share, sponsor_share," +
+        "not_float_share, float_A_stock, float_B_stock, natural_sharehold, in_natural_sharehold,out_float_stock," +
+        "out_legalperson_sharehold, in_legalperson_sharehold, raise_sharehold, change_reason)" +
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 
       result._3.foreach {
 
@@ -269,12 +272,26 @@ object Scheduler {
             date = info.last
           }
 
-          var generalCapital = 0.0
-          var limitShare = 0.0
-          var floatShare = 0.0
-          var listedShare = 0.0
-          var stateBacking = 0.0
-          var stateBackingLimit = 0.0
+          var generalCapital = 0.0 //总股本
+          var stateBacking = 0.0 //国家持股
+          var limitShare = 0.0 //流通受限股份
+          var stateBackingLimit = 0.0 //国家持股（受限）
+          var legalPersonSharehold = 0.0 //国有法人持股
+          var legalPersonShareholdLimit = 0.0 //国有法人持股（受限）
+          var foreignShareholdLimit = 0.0 //外资持股（受限）
+          var otherDomesSharehold = 0.0 //其他内资持股（受限）
+          var floatShare = 0.0 //已流通股份
+          var sponsorShare = 0.0 //发起人股份
+          var notFloatShare = 0.0 //未流通股份
+          var listedShare = 0.0 //已上市流通A股
+          var listedBShare = 0.0 //已上市流通B股
+          var naturalSharehold = 0.0 //自然人持股
+          var insideNaturalSharehold = 0.0 //境内自然人持股
+          var outsideFloatStock = 0.0 //境外上市流通股
+          var outsideLegalSharehold = 0.0 //境外法人持股
+          var insideLegalSharehold = 0.0 //境内法人持股
+          var raiseSharehold = 0.0 //募集法人持股
+          var changeReason = "" //变动原因
 
           for (j <- info.indices) {
 
@@ -312,12 +329,99 @@ object Scheduler {
                 stateBackingLimit = info(j + 1).toString.toDouble
               }
 
+            } else if (info(j).startsWith("国有法人持股")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                legalPersonSharehold = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("国有法人持股(受限)")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                legalPersonShareholdLimit = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("外资持股(受限)")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                foreignShareholdLimit = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("其他内资持股(受限)")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                otherDomesSharehold = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("发起人股份")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                sponsorShare = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("未流通股份")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                notFloatShare = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("已上市流通B股")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                listedBShare = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("自然人持股")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                naturalSharehold = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("境内自然人持股")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                insideNaturalSharehold = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("境外上市流通股")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                outsideFloatStock = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("境外法人持股")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                outsideLegalSharehold = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("境内法人持股")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                insideLegalSharehold = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("募集法人持股")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                raiseSharehold = info(j + 1).toString.toDouble
+              }
+
+            } else if (info(j).startsWith("变动原因")) {
+
+              if (info(j + 1).toString.nonEmpty) {
+                changeReason = info(j + 1).toString
+              }
+
             }
 
           }
 
-          HbaseConnection.insert(calendarStockSql, stockCode, date, generalCapital, stateBacking, limitShare,
-            stateBackingLimit, floatShare, listedShare)
+          HbaseConnection.insert(capitalStructureSql, stockCode, date, generalCapital, stateBacking, limitShare,
+            stateBackingLimit, legalPersonSharehold, legalPersonShareholdLimit, foreignShareholdLimit,
+            otherDomesSharehold, floatShare, sponsorShare, notFloatShare, listedShare, listedBShare, naturalSharehold,
+            insideNaturalSharehold, outsideFloatStock, outsideLegalSharehold, insideLegalSharehold,
+            raiseSharehold, changeReason)
 
         }
 
